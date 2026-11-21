@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Guatemala Trip</title>
+  <meta name="description" content="A travel story through Guatemala, city by city.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23efe6d2'/%3E%3Cpath d='M5 25 L13 11 L17 17 L20 13 L27 25 Z' fill='none' stroke='%2333291f' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+  <link href="style.css?v=14" rel="stylesheet">
+</head>
+<body>
+  <div id="map" aria-label="Map of the journey"></div>
+  <div class="paper" aria-hidden="true"></div>
+
+  <section id="card" class="card" hidden aria-live="polite">
+    <button id="card-toggle" class="card-toggle" type="button">Hide the story</button>
+    <div id="card-body"></div>
+  </section>
+
+  <nav id="nav" class="nav" hidden aria-label="Travel between cities">
+    <button id="prev" class="arrow" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19"/></svg>
+      <span class="arrow-label"></span>
+    </button>
+    <p id="progress" class="progress"></p>
+    <button id="next" class="arrow arrow-next" type="button">
+      <span class="arrow-label"></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19"/></svg>
+    </button>
+  </nav>
+
+  <div id="porthole" class="porthole" hidden aria-hidden="true">
+    <div class="porthole-frame"><img alt=""></div>
+    <p class="porthole-caption"></p>
+  </div>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="modal-head">
+        <div>
+          <p id="modal-eyebrow" class="eyebrow"></p>
+          <h2 id="modal-title"></h2>
+        </div>
+        <button class="close" type="button" data-close>Close</button>
+      </header>
+      <div id="track" class="track"></div>
+      <div class="photo-nav">
+        <button id="photo-prev" type="button">Previous photo</button>
+        <span id="photo-count"></span>
+        <button id="photo-next" type="button">Next photo</button>
+      </div>
+      <div id="modal-text" class="modal-text"></div>
+      <div id="photo-note" class="photo-note" aria-live="polite"></div>
+    </article>
+  </div>
+
+  <main id="lock" class="lock">
+    <form id="lock-form" class="lock-card" autocomplete="off">
+      <p class="eyebrow">A Travel Story</p>
+      <h1>Guatemala Trip</h1>
+      <p class="lock-sub">November 2026</p>
+      <div class="rule" aria-hidden="true"></div>
+      <label for="password">Enter the password Shaun shared with you</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button id="unlock" type="submit">Open the story</button>
+      <p id="lock-error" class="lock-error" role="alert"></p>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script src="app.js?v=29"></script>
+</body>
+</html>
