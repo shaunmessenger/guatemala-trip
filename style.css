@@ -428,6 +428,10 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 .place-marker.shown { opacity: 1; transform: none; }
+/* Only the label and the dot take clicks. The marker's box also covers the
+   stem, which would otherwise block a neighbour's label sitting behind it. */
+.place-marker { pointer-events: none; }
+.place-marker .label, .place-marker .pin { pointer-events: auto; cursor: pointer; }
 .place-marker .label {
   padding: 5px 13px;
   border-radius: 999px;
@@ -525,6 +529,36 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .town-pin:hover .name, .town-pin:focus-visible .name { text-decoration: underline; text-underline-offset: 3px; }
 
 .event-pin[hidden] { display: none !important; }
+
+/* The villages pin: background, not one of Shaun's places, so it is a paper
+   chip with the woven dot rather than an indigo label on a stem. */
+.village-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(43, 45, 110, 0.25);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.village-marker.shown { opacity: 1; }
+.village-marker .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: conic-gradient(#7b1a1f, #b22222, #6b2c5f, #2e5c9a, #1a9aa0, #a52a2a, #7b1a1f);
+}
+.village-marker:hover, .village-marker:focus-visible { background: var(--paper-deep); }
+.village-marker[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .text-button {
   margin-top: 6px;
   padding: 0;
@@ -704,6 +738,59 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .modal-text { margin-top: 14px; }
 .modal-text p { margin: 0 0 0.8em; }
 
+/* Elena's herbs, under the temazcal photos */
+.herbs { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--ink-faint); }
+.herbs h3 {
+  margin: 0 0 6px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.herbs > p { margin: 0 0 0.6em; }
+.recipe {
+  margin: 0 0 20px;
+  padding: 12px 16px 12px 36px;
+  background: rgba(43, 45, 110, 0.05);
+  border-left: 3px solid var(--accent);
+}
+.recipe li { margin: 0 0 4px; }
+.recipe li:last-child { margin-bottom: 0; }
+.herb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.herb {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ink-faint);
+}
+.herb:last-child { border-bottom: 0; padding-bottom: 0; }
+.herb.no-plate { grid-template-columns: 1fr; padding-left: 148px; }
+.herb-plate { margin: 0; height: 176px; display: flex; align-items: center; justify-content: center; }
+.herb-plate img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  /* The engravings are indigo on white: multiply lets the page's paper show
+     through the white. */
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.herb-plate img.ready { opacity: 1; }
+.herb-name {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  line-height: 1.15;
+}
+.herb-also { margin: 0 0 6px; font-style: italic; color: var(--ink-soft); }
+.herb-note { margin: 0 0 6px; }
+.herb-credit { margin: 0; font-size: 0.8rem; color: var(--ink-soft); }
+
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 
@@ -752,6 +839,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .modal { padding: 0; align-items: end; }
   .modal-card { max-height: 92vh; border-radius: 12px 12px 0 0; --pad-y: 18px; --pad-x: var(--gutter); padding-bottom: 22px; }
+  .herb { grid-template-columns: 96px 1fr; gap: 12px; }
+  .herb.no-plate { padding-left: 108px; }
+  .herb-plate { height: 132px; }
   .modal-head h2 { font-size: 1.7rem; }
   .slide .frame { height: 46vh; }
 }

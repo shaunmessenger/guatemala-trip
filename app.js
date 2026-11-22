@@ -909,7 +909,7 @@
           list.append(b);
         });
         if (stop.villages) {
-          const b = el("button", "place-button village-button", stop.villages.button || stop.villages.title);
+          const b = el("button", "place-button village-button village-toggle", stop.villages.button || stop.villages.title);
           b.type = "button";
           b.setAttribute("aria-pressed", "false");
           b.addEventListener("click", () => toggleTowns(stop, b));
@@ -957,7 +957,10 @@
       b.innerHTML = `<span class="label"></span><span class="stem"></span><span class="pin"></span>`;
       // Stems of different lengths, so nearby labels stack instead of overlapping.
       // A place can set its own "lift" when its neighbours still crowd it.
-      b.querySelector(".stem").style.height = `${place.lift ?? 16 + 30 * (n % 3)}px`;
+      const lift = place.lift ?? 16 + 30 * (n % 3);
+      b.querySelector(".stem").style.height = `${lift}px`;
+      // Lower labels sit on top, so a taller neighbour's stem passes behind them.
+      b.style.zIndex = String(300 - lift);
       b.querySelector(".label").textContent = place.label;
       b.setAttribute("aria-label", `See photos: ${place.label}`);
       b.addEventListener("click", (e) => {
@@ -969,6 +972,21 @@
       placeMarkers.push(marker);
       setTimeout(() => b.classList.add("shown"), 150 + n * 180);
     });
+    // The villages get their own pin out on the water. It looks different
+    // from Shaun's places, because it is background, not something he did.
+    if (stop.villages && stop.villages.coords) {
+      const b = el("button", "village-marker village-toggle");
+      b.type = "button";
+      b.append(el("span", "dot"), el("span", "label", stop.villages.button || stop.villages.title));
+      b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleTowns(stop, b);
+      });
+      const marker = new maplibregl.Marker({ element: b, anchor: "center" }).setLngLat(stop.villages.coords).addTo(map);
+      placeMarkers.push(marker);
+      setTimeout(() => b.classList.add("shown"), 150 + (stop.places || []).length * 180);
+    }
   }
 
   function clearPlaces() {
@@ -984,8 +1002,12 @@
   function toggleTowns(stop, button) {
     const on = !townMarkers.length;
     document.querySelectorAll(".event-pin").forEach((pin) => { pin.hidden = on; });
-    button.textContent = on ? "Hide the villages" : stop.villages.button || stop.villages.title;
-    button.setAttribute("aria-pressed", String(on));
+    // The card button and the map pin both switch the villages, so both
+    // change their wording together.
+    document.querySelectorAll(".village-toggle").forEach((toggle) => {
+      (toggle.querySelector(".label") || toggle).textContent = on ? "Hide the villages" : stop.villages.button || stop.villages.title;
+      toggle.setAttribute("aria-pressed", String(on));
+    });
     if (!on) {
       townMarkers.forEach((m) => m.remove());
       townMarkers = [];
@@ -1033,6 +1055,7 @@
     $("#modal-eyebrow").textContent = stop.name;
     $("#modal-title").textContent = place.title || place.label;
     $("#modal-text").replaceChildren(paragraphs(place.text));
+    $("#modal-extra").replaceChildren(...(place.herbs ? [herbSection(place.herbs)] : []));
 
     const track = $("#track");
     track.replaceChildren();
@@ -1071,6 +1094,48 @@
     $("#modal .close").focus({ preventScroll: true });
   }
 
+  // Elena's herbs for the temazcal: her recipe, then one old engraving per
+  // plant with its names and what it is used for. It sits below the photo
+  // notes, so it stays put while the photos are swiped.
+  function herbSection(herbs) {
+    const section = el("section", "herbs");
+    section.append(el("h3", "", herbs.title));
+    if (herbs.intro) section.append(el("p", "", herbs.intro));
+    if (herbs.recipe) {
+      const steps = el("ol", "recipe");
+      herbs.recipe.forEach((step) => steps.append(el("li", "", step)));
+      section.append(steps);
+    }
+    const list = el("ul", "herb-list");
+    herbs.items.forEach((herb) => {
+      const li = el("li", herb.image ? "herb" : "herb no-plate");
+      if (herb.image) {
+        const plate = el("figure", "herb-plate");
+        const img = document.createElement("img");
+        img.alt = `Old engraving of ${herb.english.toLowerCase()}`;
+        img.width = herb.image.w;
+        img.height = herb.image.h;
+        plate.append(img);
+        li.append(plate);
+        photoUrl(herb.image.id).then((url) => {
+          img.onload = () => img.classList.add("ready");
+          img.src = url;
+        }).catch(() => { img.alt = "This engraving couldn't be loaded."; });
+      }
+      const words = el("div", "herb-words");
+      words.append(
+        el("p", "herb-name", herb.maya || herb.spanish),
+        el("p", "herb-also", herb.maya ? `${herb.spanish} · ${herb.english}` : herb.english),
+        el("p", "herb-note", herb.note),
+      );
+      if (herb.credit) words.append(el("p", "herb-credit", herb.credit));
+      li.append(words);
+      list.append(li);
+    });
+    section.append(list);
+    return section;
+  }
+
   function openInfo(eyebrow, title, content, trigger) {
     stopOrbit();
     modalReturnFocus = trigger;
@@ -1078,6 +1143,7 @@
     $("#modal-eyebrow").textContent = eyebrow;
     $("#modal-title").textContent = title;
     $("#modal-text").replaceChildren(content);
+    $("#modal-extra").replaceChildren();
     $("#track").replaceChildren();
     $("#track").hidden = true;
     $(".photo-nav").hidden = true;
