@@ -480,12 +480,24 @@
     const source = map.getSource("route-active");
     const t0 = performance.now();
     const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+    // Real roads have many points on their bends and few on the straights,
+    // so the line advances by distance, not by point, to keep an even pace.
+    const along = [0];
+    for (let k = 1; k < coords.length; k++) {
+      const [x1, y1] = coords[k - 1], [x2, y2] = coords[k];
+      along.push(along[k - 1] + Math.hypot((x2 - x1) * Math.cos(y1 * Math.PI / 180), y2 - y1));
+    }
+    const total = along[along.length - 1] || 1;
+    let n = 1;
 
     function frame(now) {
       if (token !== navToken) { traveller.remove(); return; }
       const t = Math.min(1, (now - t0) / duration);
-      const n = Math.max(2, Math.round(ease(t) * (coords.length - 1)) + 1);
-      const part = coords.slice(0, n);
+      const d = ease(t) * total;
+      while (n < coords.length - 1 && along[n] < d) n++;
+      const f = Math.min(1, Math.max(0, (d - along[n - 1]) / ((along[n] - along[n - 1]) || 1)));
+      const [a, b] = [coords[n - 1], coords[n]];
+      const part = [...coords.slice(0, n), [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]];
       source.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: part } });
       traveller.setLngLat(part[part.length - 1]);
       if (t < 1) requestAnimationFrame(frame);
