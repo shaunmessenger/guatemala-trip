@@ -908,7 +908,7 @@
         body.append(section);
       }
       const places = stop.places || [];
-      if (places.length || stop.villages) {
+      if (places.length || stop.villages || stop.essay) {
         const section = el("div", "section");
         section.append(el("p", "places-intro", places.length
           ? `Tap a place to see photos from ${stop.name}:`
@@ -925,6 +925,12 @@
           b.type = "button";
           b.setAttribute("aria-pressed", "false");
           b.addEventListener("click", () => toggleTowns(stop, b));
+          list.append(b);
+        }
+        if (stop.essay) {
+          const b = el("button", "place-button essay-button", stop.essay.button || stop.essay.title);
+          b.type = "button";
+          b.addEventListener("click", () => openEssay(stop, b));
           list.append(b);
         }
         section.append(list);
@@ -996,6 +1002,19 @@
         toggleTowns(stop, b);
       });
       const marker = new maplibregl.Marker({ element: b, anchor: "center" }).setLngLat(stop.villages.coords).addTo(map);
+      placeMarkers.push(marker);
+      setTimeout(() => b.classList.add("shown"), 150 + (stop.places || []).length * 180);
+    }
+    // A background essay (Asturias in Guatemala City) gets one chip too.
+    if (stop.essay && stop.essay.coords) {
+      const b = el("button", "essay-marker");
+      b.type = "button";
+      b.append(el("span", "dot"), el("span", "label", stop.essay.button || stop.essay.title));
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openEssay(stop, b);
+      });
+      const marker = new maplibregl.Marker({ element: b, anchor: "center" }).setLngLat(stop.essay.coords).addTo(map);
       placeMarkers.push(marker);
       setTimeout(() => b.classList.add("shown"), 150 + (stop.places || []).length * 180);
     }
@@ -1248,6 +1267,43 @@
     all.addEventListener("click", () => openVillages(stop, trigger));
     frag.append(bar, facts, paragraphs([town.note]), all);
     openInfo(stop.villages.title, town.name, frag, trigger);
+  }
+
+  // Loads an encrypted image into an <img> once the pop-up has it on screen.
+  function fillImage(img, photo, alt) {
+    img.alt = alt;
+    img.width = photo.w;
+    img.height = photo.h;
+    photoUrl(photo.id).then((url) => {
+      img.onload = () => img.classList.add("ready");
+      img.src = url;
+    }).catch(() => { img.alt = "This image couldn't be loaded."; });
+    return img;
+  }
+
+  function openEssay(stop, trigger) {
+    const essay = stop.essay;
+    const frag = document.createDocumentFragment();
+    if (essay.portrait) {
+      const fig = el("figure", "essay-portrait");
+      fig.append(fillImage(document.createElement("img"), essay.portrait, "Portrait of Miguel Ángel Asturias"));
+      if (essay.portrait.caption) fig.append(el("figcaption", "", essay.portrait.caption));
+      frag.append(fig);
+    }
+    frag.append(paragraphs(essay.text));
+    const list = el("ol", "book-list");
+    (essay.books || []).forEach((book) => {
+      const li = el("li", "book");
+      const cover = el("figure", "book-cover");
+      if (book.cover) cover.append(fillImage(document.createElement("img"), book.cover, `Cover of ${book.title}`));
+      const words = el("div", "book-words");
+      words.append(el("h3", "", book.title), el("p", "book-meta", `${book.year} · ${book.english}`), paragraphs(book.text));
+      if (book.credit) words.append(el("p", "book-credit", book.credit));
+      li.append(cover, words);
+      list.append(li);
+    });
+    frag.append(list, paragraphs(essay.end));
+    openInfo(stop.name, essay.title, frag, trigger);
   }
 
   function closeModal() {
