@@ -519,8 +519,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .town-pin.shown { opacity: 1; }
 .town-pin .dot {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2.5px solid var(--paper);
   box-shadow: 0 0 0 1px rgba(43, 45, 110, 0.35), 0 2px 6px rgba(43, 45, 110, 0.35);
@@ -583,7 +583,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 .swatch.unknown { background: transparent; border: 2px dashed var(--ink-soft); box-shadow: none; }
-.swatch.swatch-bar { display: block; width: 100%; height: 14px; border-radius: 3px; margin-bottom: 14px; }
+.swatch.swatch-bar { display: block; width: 100%; height: 44px; border-radius: 4px; margin-bottom: 14px; }
 .town-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 6px; }
 .town-row {
   display: flex;

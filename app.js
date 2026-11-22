@@ -1018,7 +1018,7 @@
       const b = el("button", left ? "town-pin left" : "town-pin");
       b.type = "button";
       const dot = el("span", town.color ? "dot" : "dot unknown");
-      if (town.color) dot.style.background = town.color;
+      if (town.color) paintCloth(dot, town);
       b.append(dot, el("span", "name", town.short || town.name));
       b.setAttribute("aria-label", `${town.name}: ${town.language}, ${town.colours}`);
       b.addEventListener("click", (e) => {
@@ -1153,9 +1153,55 @@
     $("#modal .close").focus({ preventScroll: true });
   }
 
-  function swatch(town) {
+  // A small piece of each town's huipil, drawn as a repeating SVG tile from
+  // `pattern` in story.json, so the lake's many reds don't all look alike.
+  function clothTile(p) {
+    const c = p.colors || [];
+    const svg = (w, h, body) => ({
+      w, h,
+      image: `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>${body}</svg>`)}")`,
+    });
+    switch (p.kind) {
+      case "stripes": {
+        let x = 0;
+        const body = c.map((col, i) => {
+          const rect = `<rect x='${x}' width='${p.widths[i]}' height='4' fill='${col}'/>`;
+          x += p.widths[i];
+          return rect;
+        }).join("");
+        return svg(x, 4, body);
+      }
+      // One band of triangles, like the ones at a huipil's neck.
+      case "triangles":
+        return { ...svg(12, 12, `<polygon points='0,9 3,3 6,9' fill='${c[0]}'/><polygon points='6,9 9,3 12,9' fill='${c[1]}'/><rect y='10' width='12' height='1' fill='${c[0]}'/>`), repeat: "repeat-x" };
+      case "squares":
+        return svg(25, 12, c.map((col, i) =>
+          `<rect x='${1 + i * 5}' y='1.5' width='3' height='3' fill='${col}'/><rect x='${3.5 + i * 5}' y='7.5' width='3' height='3' fill='${c[(i + 2) % c.length]}'/>`).join(""));
+      case "waves":
+        return svg(12, 8, `<path d='M0 4 Q3 1.2 6 4 T12 4' fill='none' stroke='${c[0]}' stroke-width='1.4'/>`);
+      case "diamonds":
+        return svg(10, 10, `<polygon points='5,1 9,5 5,9 1,5' fill='${c[0]}'/><polygon points='5,3.5 6.5,5 5,6.5 3.5,5' fill='${c[1]}'/>`);
+      case "dots":
+        return svg(8, 8, `<circle cx='2' cy='2' r='1.1' fill='${c[0]}'/><circle cx='6' cy='6' r='1.1' fill='${c[1]}'/>`);
+    }
+    return null;
+  }
+
+  function paintCloth(node, town, scale = 1) {
+    const tile = town.pattern && clothTile(town.pattern);
+    if (!tile) {
+      node.style.background = town.color;
+      return;
+    }
+    const layers = [`${tile.image} center / ${tile.w * scale}px ${tile.h * scale}px ${tile.repeat || "repeat"}`];
+    // Panajachel's red huipil is worn with a blue skirt.
+    if (town.pattern.skirt) layers.unshift(`linear-gradient(transparent 64%, ${town.pattern.skirt} 64%)`);
+    node.style.background = `${layers.join(", ")} ${town.pattern.ground || town.color}`;
+  }
+
+  function swatch(town, scale) {
     const s = el("span", town.color ? "swatch" : "swatch unknown");
-    if (town.color) s.style.background = town.color;
+    if (town.color) paintCloth(s, town, scale);
     return s;
   }
 
@@ -1180,7 +1226,8 @@
 
   function openTown(stop, town, trigger) {
     const frag = document.createDocumentFragment();
-    const bar = swatch(town);
+    // The wide bar shows the cloth twice as large.
+    const bar = swatch(town, 2);
     bar.classList.add("swatch-bar");
     const facts = el("dl", "town-facts");
     facts.append(el("dt", "", "Language"), el("dd", "", town.language), el("dt", "", "Colours"), el("dd", "", town.colours));
